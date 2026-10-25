@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЕГЭ-тренажёр — демо</title>
+<style>
+  /* ===== ПОДКЛЮЧЕНИЕ ШРИФТОВ ===== */
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  /* ===== ПЕРЕМЕННЫЕ ===== */
+  :root {
+    --bg: #d9c9b6;
+    --bg-2: #e7dccd;
+    --card: #fffaf3;
+    --card-soft: rgba(255, 250, 243, 0.82);
+    --brown: #4a2c1c;
+    --brown-2: #6b3f24;
+    --brown-3: #8a5a3b;
+    --brown-deep: #2c1810;
+    --cream: #f6ecdd;
+    --accent: #a4643a;
+    --accent-2: #c98c5b;
+    --text: #2c1810;
+    --muted: #7a6553;
+    --border: rgba(74, 44, 28, 0.14);
+    --shadow: 0 30px 80px rgba(44, 24, 16, 0.25);
+    --radius-xl: 36px;
+    --radius-lg: 26px;
+    --radius-md: 18px;
+    --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+    --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: var(--sans);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #f3e6d6 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, #e9d6bf 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* декоративные пятна на фоне */
+  .deco {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .deco::before, .deco::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .55;
+  }
+  .deco::before {
+    width: 620px; height: 620px;
+    background: radial-gradient(circle, #b98863 0%, transparent 70%);
+    left: -220px; top: -160px;
+  }
+  .deco::after {
+    width: 720px; height: 720px;
+    background: radial-gradient(circle, #e8d4bd 0%, transparent 70%);
+    right: -260px; bottom: -260px;
+  }
+
+  /* все экраны над декором */
+  .screen { position: relative; z-index: 1; display: none; padding: 28px; }
+  .screen.active { display: block; }
+
+  /* ЭКРАН АВТОРИЗАЦИИ — центрированный, «стеклянный» */
+  #auth-screen { display: none; min-height: 100vh; align-items: center; justify-content: center; }
+  #auth-screen.active { display: flex; }
+
+  /* ===== КАРТОЧКИ ===== */
+  .card {
+    position: relative;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.6) inset,
+      0 24px 60px rgba(44, 24, 16, 0.16);
+    border: 1px solid rgba(255,255,255,.55);
+    backdrop-filter: blur(6px);
+  }
+  #auth-screen .card {
+    width: 100%;
+    max-width: 480px;
+    border-radius: var(--radius-xl);
+    padding: 36px;
+    background:
+      linear-gradient(180deg, rgba(255,250,243,.95) 0%, rgba(246,236,221,.92) 100%);
+    box-shadow: var(--shadow);
+  }
+
+  /* ===== ТИПОГРАФИКА ===== */
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 34px;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: var(--brown-deep);
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    color: var(--brown-deep);
+    margin-bottom: 16px;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 19px;
+    color: var(--brown-deep);
+    margin-bottom: 10px;
+  }
+  .hint {
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .hint.small { font-size: 12.5px; margin-top: 14px; }
+
+  /* ===== ФОРМЫ ===== */
+  form label {
+    display: block;
+    margin-bottom: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--brown-2);
+  }
+  form input, form select {
+    width: 100%;
+    margin-top: 8px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-family: var(--sans);
+    background: rgba(255,255,255,.7);
+    color: var(--text);
+    transition: border-color .15s, box-shadow .15s, background .15s;
+  }
+  form input::placeholder { color: #b7a592; }
+  form input:focus, form select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(164, 100, 58, 0.15);
+  }
+
+  /* ===== КНОПКИ ===== */
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 999px;
+    padding: 13px 22px;
+    font-size: 14px;
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    background: linear-gradient(180deg, var(--brown-2) 0%, var(--brown) 100%);
+    color: var(--cream);
+    transition: transform .12s, box-shadow .15s, filter .15s;
+    box-shadow: 0 10px 24px rgba(74, 44, 28, 0.25);
+  }
+  button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  button.ghost {
+    background: transparent;
+    color: var(--brown);
+    border: 1px solid var(--border);
+    box-shadow: none;
+  }
+  button.ghost:hover { background: rgba(164, 100, 58, 0.08); }
+  button.small { padding: 8px 14px; font-size: 12.5px; }
+
+  .link-btn {
+    background: none;
+    color: var(--accent);
+    padding: 0;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    box-shadow: none;
+    border-radius: 0;
+    text-align: left;
+  }
+  .link-btn:hover { background: none; text-decoration: underline; transform: none; filter: none; }
+
+  /* ===== ОШИБКИ ===== */
+  .error { display: none; color: #a8342a; font-size: 12px; font-weight: 600; margin-top: 6px; letter-spacing: 0; text-transform: none; }
+  .error.show { display: block; }
+  input.invalid { border-color: #a8342a; box-shadow: 0 0 0 4px rgba(168, 52, 42, .12); }
+
+  /* ===== ТОПБАР ===== */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1240px;
+    margin: 0 auto 26px;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 4px 6px;
+  }
+  .topbar h1 { margin: 0; }
+
+  /* ===== СЕТКА ===== */
+  .grid {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+  }
+  .card.wide { grid-column: 1 / -1; }
+
+  /* ===== СПИСКИ ===== */
+  .list { list-style: none; }
+  .list li {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(255,255,255,.55);
+    transition: background .15s, border-color .15s;
+  }
+  .list li:hover { background: rgba(255,255,255,.85); }
+  .list li.done {
+    background: linear-gradient(180deg, rgba(246,236,221,.9), rgba(233,216,190,.75));
+    border-color: rgba(164,100,58,.35);
+  }
+
+  /* ===== БЕЙДЖИ ===== */
+  .badge {
+    font-size: 11px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(74, 44, 28, 0.08);
+    color: var(--brown-2);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .badge.ok { background: rgba(64, 138, 86, 0.14); color: #2f6b41; }
+  .badge.fail { background: rgba(168, 52, 42, 0.12); color: #8f2f27; }
+
+  /* ===== СООБЩЕНИЯ ===== */
+  .msg { margin-top: 14px; font-size: 14px; font-weight: 600; color: #2f6b41; }
+  .msg.err { color: #8f2f27; }
+
+  /* ===== ПЛИТКИ ЗАДАНИЙ ===== */
+  .tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .task-tile {
+    position: relative;
+    padding: 16px 16px 18px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(246,236,221,.7));
+    border: 1px solid var(--border);
+    transition: all .18s;
+    text-align: left;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--brown-deep);
+    box-shadow: 0 6px 18px rgba(44,24,16,.06);
+  }
+  .task-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 14px 28px rgba(74,44,28,.16);
+    background: #fff;
+    filter: none;
+  }
+  .task-tile.active {
+    background: linear-gradient(180deg, #5b3620 0%, #3a2012 100%);
+    color: var(--cream);
+    border-color: transparent;
+    box-shadow: 0 16px 36px rgba(44,24,16,.35);
+  }
+  .task-tile .num {
+    display: block;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+    color: var(--accent);
+  }
+  .task-tile.active .num { color: var(--accent-2); }
+
+  /* ===== ТРЕНАЖЁР ===== */
+  .trainer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .trainer-head .nav { display: flex; gap: 10px; align-items: center; }
+  .trainer-head h2 { margin: 0; }
+
+  .question-box {
+    padding: 22px;
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.85), rgba(246,236,221,.6));
+    border: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .question-box .q-text {
+    font-family: var(--serif);
+    font-size: 21px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+    font-weight: 600;
+    color: var(--brown-deep);
+    letter-spacing: -0.2px;
+  }
+
+  /* варианты ответа — «пилюли» */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .options label {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: rgba(255,255,255,.75);
+    color: var(--text);
+    margin: 0;
+    transition: all .15s;
+  }
+  .options label:hover { border-color: var(--accent-2); background: #fff; }
+  .options input { width: auto; margin: 0; accent-color: var(--accent); }
+  .options label.correct {
+    border-color: #4d9668;
+    background: linear-gradient(180deg, #eaf7ee, #dcefe1);
+  }
+  .options label.wrong {
+    border-color: #b8473c;
+    background: linear-gradient(180deg, #fbeceb, #f6dedb);
+  }
+
+  /* ===== ТАБЛИЦА ===== */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  tbody tr:hover { background: rgba(255,255,255,.55); }
+
+  /* ===== КРЕДЕНШЛЫ ===== */
+  .credentials {
+    margin-top: 16px;
+    padding: 18px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, #f6efe2, #ecdcc3);
+    border: 1px solid rgba(164,100,58,.35);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .credentials b {
+    font-family: 'Inter', ui-monospace, monospace;
+    font-size: 15px;
+    color: var(--brown-deep);
+    letter-spacing: 0.4px;
+  }
+
+  /* ===== ПРОГРЕСС-БАР ===== */
+  .progress-bar {
+    height: 10px;
+    background: rgba(74,44,28,.1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--brown-2) 100%);
+    border-radius: 999px;
+    transition: width .3s ease;
+  }
+
+  /* ===== ТАБЫ АВТОРИЗАЦИИ ===== */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 5px;
+    background: rgba(74,44,28,.06);
+    border-radius: 999px;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px 14px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--brown-2);
+    cursor: pointer;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    border: none;
+    box-shadow: none;
+    transition: all .18s;
+  }
+  .tab:hover { background: rgba(255,255,255,.5); transform: none; filter: none; }
+  .tab.active {
+    background: linear-gradient(180deg, var(--brown-2) 0%, var(--brown) 100%);
+    color: var(--cream);
+    box-shadow: 0 8px 18px rgba(74,44,28,.28);
+  }
+
+  /* ===== СКРОЛЛБАР ===== */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(74,44,28,.22);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(74,44,28,.4); background-clip: padding-box; }
+
+  /* ===== АДАПТИВ ===== */
+  @media (max-width: 640px) {
+    .screen { padding: 18px; }
+    h1 { font-size: 28px; }
+    .card { padding: 22px; border-radius: 22px; }
+    #auth-screen .card { padding: 26px; border-radius: 26px; }
+    .tasks-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     ЭКРАНЫ (СТРУКТУРА ПОЛНОСТЬЮ СОХРАНЕНА)
+     ========================================================= -->
+
+<!-- ЭКРАН АВТОРИЗАЦИИ -->
+<section id="auth-screen" class="screen active">
+  <div class="card">
+    <h1>Вход в систему</h1>
+    <p class="hint">Выберите, кем вы входите.</p>
+
+    <div class="tabs" id="auth-tabs">
+      <button class="tab active" data-role="teacher">Учитель</button>
+      <button class="tab" data-role="student">Ученик</button>
+    </div>
+
+    <form id="login-form">
+      <label>
+        Логин
+        <input type="text" id="login" placeholder="teacher" required>
+        <span class="error" id="login-error">Необходимо ввести!</span>
+      </label>
+      <label>
+        Пароль
+        <input type="password" id="password" placeholder="1234" required>
+        <span class="error" id="password-error">Необходимо ввести!</span>
+      </label>
+      <button type="submit" id="login-submit">Войти как учитель</button>
+    </form>
+
+    <p class="hint small" id="auth-hint">Демо-вход учителя: <b>teacher / 1234</b>. Ученика создаёт учитель.</p>
+  </div>
+</section>
+
+<!-- ПАНЕЛЬ УЧИТЕЛЯ -->
+<section id="teacher-screen" class="screen">
+  <header class="topbar">
+    <h1>Кабинет учителя</h1>
+    <button id="logout-teacher" class="link-btn">Выйти</button>
+  </header>
+
+  <main class="grid">
+    <!-- Добавление ученика -->
+    <div class="card">
+      <h2>Добавить ученика</h2>
+      <form id="add-student-form">
+        <label>Имя ученика
+          <input type="text" id="st-name" placeholder="Например, Анна Петрова" required>
+        </label>
+        <label>Возраст
+          <input type="number" id="st-age" min="7" max="70" placeholder="17" required>
+        </label>
+        <button type="submit">Создать ученика</button>
+      </form>
+      <div id="new-credentials"></div>
+    </div>
+
+    <!-- Список учеников -->
+    <div class="card">
+      <h2>Мои ученики</h2>
+      <ul id="students-list" class="list"></ul>
+    </div>
+
+    <!-- Выбор задания ЕГЭ -->
+    <div class="card wide">
+      <h2>Задания ЕГЭ (26 заданий, без №27)</h2>
+      <p class="hint">Нажмите на номер задания, чтобы открыть 110 тренировочных вариантов и опубликовать нужный ученику.</p>
+      <div class="tasks-grid" id="tasks-grid"></div>
+    </div>
+
+    <!-- Тренажёр по выбранному заданию -->
+    <div class="card wide" id="trainer-card" style="display:none;">
+      <div class="trainer-head">
+        <h2 id="trainer-title">Задание</h2>
+        <div class="nav">
+          <button class="ghost small" id="prev-task">← Назад</button>
+          <span id="task-counter" class="badge">1 / 110</span>
+          <button class="ghost small" id="next-task">Вперёд →</button>
+        </div>
+      </div>
+
+      <div class="question-box">
+        <div class="q-text" id="q-text"></div>
+        <div class="options" id="q-options"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <select id="publish-student" style="max-width:260px; padding:10px 12px; border-radius:9px; border:1px solid #cfd6e6;"></select>
+        <button id="publish-btn">Опубликовать ученику</button>
+      </div>
+      <p id="publish-msg" class="msg"></p>
+    </div>
+
+    <!-- Результаты учеников -->
+    <div class="card wide">
+      <h2>Результаты учеников</h2>
+      <div id="results-block"><p class="hint">Пока нет выполненных заданий.</p></div>
+    </div>
+  </main>
+</section>
+
+<!-- КАБИНЕТ УЧЕНИКА -->
+<section id="student-screen" class="screen">
+  <header class="topbar">
+    <h1>Кабинет ученика</h1>
+    <button id="logout-student" class="link-btn">Выйти</button>
+  </header>
+
+  <main class="grid">
+    <div class="card">
+      <h2>Мои задания</h2>
+      <ul id="student-tasks" class="list"></ul>
+    </div>
+
+    <div class="card wide">
+      <h2 id="st-task-title">Выберите задание</h2>
+      <div id="st-task-body"><p class="hint">Задание не выбрано.</p></div>
+      <div id="st-task-result" class="msg"></div>
+    </div>
+  </main>
+</section>
+
+<!-- =========================================================
+     СКРИПТ (ПОЛНОСТЬЮ БЕЗ ИЗМЕНЕНИЙ)
+     ========================================================= -->
+<script>
+/* =========================================================
+   ГЕНЕРАЦИЯ ЗАДАНИЙ ЕГЭ: 26 номеров × 110 вариантов
+   ========================================================= */
+
+const TASK_TITLES = {
+  1: "Орфоэпия (ударение)",
+  2: "Паронимы",
+  3: "Лексическое значение слова",
+  4: "Орфография: безударная гласная",
+  5: "Орфография: приставки",
+  6: "Орфография: суффиксы",
+  7: "Морфологические нормы",
+  8: "Синтаксические нормы",
+  9: "Пунктуация: сложносочинённое",
+  10: "Пунктуация: обособленные члены",
+  11: "Пунктуация: вводные слова",
+  12: "Пунктуация: сложноподчинённое",
+  13: "Слитно/раздельно/дефис",
+  14: "НЕ и НИ",
+  15: "Слитное написание",
+  16: "Пунктуация: однородные члены",
+  17: "Пунктуация: сложное предложение",
+  18: "Знаки препинания при обращении",
+  19: "Сложное предложение с разными видами связи",
+  20: "Смысловая связь предложений",
+  21: "Типы речи",
+  22: "Средства выразительности",
+  23: "Лексика: синонимы/антонимы",
+  24: "Средства связи предложений",
+  25: "Орфография: Н и НН",
+  26: "Пунктуация: обобщение"
+};
+
+// Банки слов для генерации осмысленных заданий
+const WORD_BANK = {
+  stress: [
+    ["звонит", "торты", "начала", "красивее", 1],
+    ["документ", "каталог", "квартал", "досуг", 2],
+    ["свёкла", "щавель", "шофёр", "эксперт", 0],
+    ["банты", "шарфы", "торты", "порты", 2],
+    ["нефтепровод", "газопровод", "мусоропровод", "водопровод", 0]
+  ],
+  paronyms: [
+    ["одеть", "надеть", "обуть", "раздеть", 1],
+    ["эффектный", "эффективный", "экономный", "экономичный", 0],
+    ["сравнять", "сровнять", "уровнять", "выровнять", 2],
+    ["представить", "предоставить", "преподнести", "подставить", 1],
+    ["дипломат", "дипломант", "дипломатичный", "дипломный", 1]
+  ],
+  vocab: [
+    ["Абонемент — это…", "документ на право пользования", "человек, пользующийся услугой", "аренда помещения", "договор купли-продажи", 0],
+    ["Балл — это…", "единица оценки", "большой шар", "вид танца", "оценка в школе", 0],
+    ["Гипотеза — это…", "научное предположение", "доказанный факт", "опровержение", "теория", 0],
+    ["Дебют — это…", "первое выступление", "финал", "провал", "репетиция", 0],
+    ["Инициатива — это…", "почин, начинание", "завершение", "отказ", "ожидание", 0]
+  ],
+  spelling: [
+    ["В каком слове пропущена буква А?", "к_саться", "к_снуться", "прик_саться", "к_сание", 0],
+    ["В каком слове пишется И?", "соб_рать", "соб_ру", "зам_реть", "зам_рать", 0],
+    ["В каком слове пишется О?", "р_сток", "р_сти", "выр_сли", "р_стовщик", 0],
+    ["В каком слове пишется Е?", "пр_мер", "пр_красный", "пр_града", "пр_ступник", 1],
+    ["В каком слове пишется Ё?", "ж_лтый", "ж_лудь", "ш_лк", "ч_рный", 0]
+  ]
+};
+
+function getBankForTask(num) {
+  if (num === 1) return WORD_BANK.stress;
+  if (num === 2) return WORD_BANK.paronyms;
+  if (num === 3) return WORD_BANK.vocab;
+  if ([4,5,6,25].includes(num)) return WORD_BANK.spelling;
+  // для остальных номеров — универсальный шаблон
+  return [
+    ["Выберите правильный вариант ответа:", "Вариант A", "Вариант B", "Вариант C", "Вариант D", 1],
+    ["Выберите правильный вариант ответа:", "Вариант 1", "Вариант 2", "Вариант 3", "Вариант 4", 2],
+    ["Выберите правильный вариант ответа:", "Первый", "Второй", "Третий", "Четвёртый", 0]
+  ];
+}
+
+// Генерируем 110 вариантов для каждого задания
+function generateTaskVariants(taskNum) {
+  const bank = getBankForTask(taskNum);
+  const variants = [];
+  for (let i = 0; i < 110; i++) {
+    const base = bank[i % bank.length];
+    const variantNum = i + 1;
+    let question, options, correct;
+    if (taskNum === 3) {
+      question = base[0];
+      options = [base[1], base[2], base[3], base[4]];
+      correct = base[5];
+    } else if ([4,5,6,25].includes(taskNum)) {
+      question = base[0];
+      options = [base[1], base[2], base[3], base[4]];
+      correct = base[5];
+    } else if (taskNum === 1 || taskNum === 2) {
+      question = "В каком слове ударение падает на указанный слог? (вариант " + variantNum + ")";
+      const words = [base[0], base[1], base[2], base[3]];
+      const shift = i % 4;
+      options = words.map((w, idx) => words[(idx + shift) % 4]);
+      correct = (base[4] - shift + 4) % 4;
+      question = "Выберите правильный вариант (вариант " + variantNum + "):";
+    } else {
+      question = base[0] + " (вариант " + variantNum + ")";
+      options = [base[1], base[2], base[3], base[4]];
+      correct = base[5];
+    }
+    variants.push({ id: taskNum + "-" + variantNum, num: variantNum, question, options, correct });
+  }
+  return variants;
+}
+
+const ALL_TASKS = {};
+for (let n = 1; n <= 26; n++) {
+  ALL_TASKS[n] = { num: n, title: TASK_TITLES[n], variants: generateTaskVariants(n) };
+}
+
+/* =========================================================
+   СОСТОЯНИЕ
+   ========================================================= */
+
+const STORAGE_KEY = "ege_trainer_v2";
+
+function defaultState() {
+  return {
+    teacher: { login: "teacher", password: "1234" },
+    students: [],
+    published: []
+  };
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try { return JSON.parse(raw); } catch(e) {}
+  }
+  const s = defaultState();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  return s;
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+let currentUser = null;
+let authRole = "teacher";
+let selectedTaskNum = null;
+let selectedVariantIndex = 0;
+let currentStudentTaskId = null;
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+function showScreen(id) {
+  $$(".screen").forEach(s => s.classList.remove("active"));
+  $("#" + id).classList.add("active");
+}
+
+function uid(prefix) {
+  return prefix + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+}
+
+function randomLogin(name) {
+  const translit = {
+    а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",
+    к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",
+    х:"h",ц:"c",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"
+  };
+  let base = name.toLowerCase().split(/\s+/)[0].split("").map(ch => translit[ch] ?? ch).join("");
+  base = base.replace(/[^a-z0-9]/g, "").slice(0, 10) || "student";
+  let login = base + Math.floor(100 + Math.random() * 900);
+  while (state.students.some(s => s.login === login)) {
+    login = base + Math.floor(100 + Math.random() * 900);
+  }
+  return login;
+}
+
+function randomPassword() {
+  const chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let p = "";
+  for (let i = 0; i < 8; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  return p;
+}
+
+function getStudent(id) { return state.students.find(s => s.id === id); }
+function getVariant(taskNum, idx) { return ALL_TASKS[taskNum].variants[idx]; }
+
+/* =========================================================
+   АВТОРИЗАЦИЯ
+   ========================================================= */
+
+$$("#auth-tabs .tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    $$("#auth-tabs .tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    authRole = tab.dataset.role;
+    $("#login-submit").textContent = authRole === "teacher" ? "Войти как учитель" : "Войти как ученик";
+    $("#auth-hint").innerHTML = authRole === "teacher"
+      ? 'Демо-вход учителя: <b>teacher / 1234</b>.'
+      : 'Логин и пароль выдаёт учитель при создании ученика.';
+    $("#login").value = "";
+    $("#password").value = "";
+  });
+});
+
+$("#login-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const login = $("#login").value.trim();
+  const pass = $("#password").value.trim();
+
+  toggleError("#login", "#login-error", !login);
+  toggleError("#password", "#password-error", !pass);
+  if (!login || !pass) return;
+
+  if (authRole === "teacher") {
+    if (login === state.teacher.login && pass === state.teacher.password) {
+      currentUser = { role: "teacher" };
+      openTeacher();
+    } else {
+      showLoginError("Неверный логин или пароль учителя");
+    }
+  } else {
+    const student = state.students.find(s => s.login === login && s.password === pass);
+    if (student) {
+      currentUser = { role: "student", id: student.id };
+      openStudent();
+    } else {
+      showLoginError("Неверный логин или пароль ученика");
+    }
+  }
+});
+
+function showLoginError(text) {
+  $("#password-error").textContent = text;
+  $("#password-error").classList.add("show");
+  $("#password").classList.add("invalid");
+}
+
+function toggleError(inputSel, errorSel, show) {
+  $(inputSel).classList.toggle("invalid", show);
+  $(errorSel).classList.toggle("show", show);
+}
+
+$("#logout-teacher").addEventListener("click", logout);
+$("#logout-student").addEventListener("click", logout);
+function logout() {
+  currentUser = null;
+  showScreen("auth-screen");
+  $("#login-form").reset();
+  $$(".error").forEach(e => e.classList.remove("show"));
+}
+
+/* =========================================================
+   КАБИНЕТ УЧИТЕЛЯ
+   ========================================================= */
+
+function openTeacher() {
+  showScreen("teacher-screen");
+  renderStudents();
+  renderTasksGrid();
+  renderResults();
+  $("#trainer-card").style.display = "none";
+  selectedTaskNum = null;
+  $("#publish-msg").textContent = "";
+}
+
+$("#add-student-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#st-name").value.trim();
+  const age = Number($("#st-age").value);
+  if (!name || !age) return;
+
+  const login = randomLogin(name);
+  const password = randomPassword();
+  const student = {
+    id: uid("s"),
+    name,
+    age,
+    login,
+    password,
+    teacherLogin: state.teacher.login
+  };
+  state.students.push(student);
+  saveState();
+
+  $("#new-credentials").innerHTML = `
+    <div class="credentials">
+      Ученик <b>${name}</b> (${age} лет) создан.<br>
+      Логин: <b>${login}</b><br>
+      Пароль: <b>${password}</b><br>
+      <span class="hint small">Сохраните эти данные — ученик входит по ним.</span>
+    </div>
+  `;
+  $("#add-student-form").reset();
+  renderStudents();
+  fillPublishStudentSelect();
+});
+
+function renderStudents() {
+  const list = $("#students-list");
+  if (!state.students.length) {
+    list.innerHTML = `<li class="hint">Учеников пока нет. Добавьте первого.</li>`;
+    return;
+  }
+  list.innerHTML = state.students.map(s => `
+    <li>
+      <span><b>${s.name}</b>, ${s.age} лет<br><small class="hint">${s.login} / ${s.password}</small></span>
+      <span class="badge">${s.login}</span>
+    </li>
+  `).join("");
+}
+
+function renderTasksGrid() {
+  const grid = $("#tasks-grid");
+  grid.innerHTML = Object.values(ALL_TASKS).map(t => `
+    <button class="task-tile ${selectedTaskNum === t.num ? "active" : ""}" data-num="${t.num}">
+      <span class="num">Задание ${t.num}</span>
+      ${t.title}
+    </button>
+  `).join("");
+
+  grid.querySelectorAll(".task-tile").forEach(btn => {
+    btn.addEventListener("click", () => openTrainer(Number(btn.dataset.num)));
+  });
+}
+
+function openTrainer(taskNum) {
+  selectedTaskNum = taskNum;
+  selectedVariantIndex = 0;
+  $("#trainer-card").style.display = "block";
+  $("#trainer-title").textContent = `Задание ${taskNum}. ${ALL_TASKS[taskNum].title}`;
+  fillPublishStudentSelect();
+  renderVariant();
+  renderTasksGrid();
+  $("#trainer-card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderVariant() {
+  const variant = getVariant(selectedTaskNum, selectedVariantIndex);
+  $("#task-counter").textContent = `${selectedVariantIndex + 1} / 110`;
+  $("#q-text").textContent = variant.question;
+  $("#q-options").innerHTML = variant.options.map((opt, i) => `
+    <label class="${i === variant.correct ? "" : ""}">
+      <input type="radio" name="trainer-answer" value="${i}">
+      ${opt}
+    </label>
+  `).join("");
+  $$('#q-options input').forEach(inp => inp.checked = false);
+}
+
+$("#prev-task").addEventListener("click", () => {
+  if (selectedVariantIndex > 0) { selectedVariantIndex--; renderVariant(); }
+});
+$("#next-task").addEventListener("click", () => {
+  if (selectedVariantIndex < 109) { selectedVariantIndex++; renderVariant(); }
+});
+
+function fillPublishStudentSelect() {
+  const sel = $("#publish-student");
+  if (!state.students.length) {
+    sel.innerHTML = `<option value="">Сначала добавьте ученика</option>`;
+    return;
+  }
+  sel.innerHTML = state.students.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+}
+
+$("#publish-btn").addEventListener("click", () => {
+  const msg = $("#publish-msg");
+  msg.className = "msg";
+
+  if (!selectedTaskNum) { msg.textContent = "Сначала выберите задание."; msg.classList.add("err"); return; }
+  const studentId = $("#publish-student").value;
+  if (!studentId) { msg.textContent = "Сначала добавьте ученика."; msg.classList.add("err"); return; }
+
+  const exists = state.published.some(p =>
+    p.studentId === studentId && p.taskNum === selectedTaskNum && p.variantIndex === selectedVariantIndex
+  );
+  if (exists) {
+    msg.textContent = "Этот вариант уже опубликован этому ученику.";
+    msg.classList.add("err");
+    return;
+  }
+
+  state.published.push({
+    id: uid("p"),
+    studentId,
+    taskNum: selectedTaskNum,
+    variantIndex: selectedVariantIndex,
+    answers: null,
+    assignedAt: Date.now()
+  });
+  saveState();
+  msg.textContent = `Задание ${selectedTaskNum} (вариант ${selectedVariantIndex + 1}) опубликовано ученику ${getStudent(studentId).name}.`;
+  renderResults();
+});
+
+function renderResults() {
+  const block = $("#results-block");
+  const done = state.published.filter(p => p.answers);
+  if (!done.length) {
+    block.innerHTML = `<p class="hint">Пока нет выполненных заданий.</p>`;
+    return;
+  }
+
+  const byStudent = {};
+  done.forEach(p => {
+    if (!byStudent[p.studentId]) byStudent[p.studentId] = [];
+    byStudent[p.studentId].push(p);
+  });
+
+  block.innerHTML = Object.entries(byStudent).map(([studentId, items]) => {
+    const student = getStudent(studentId);
+    if (!student) return "";
+    const total = items.length;
+    const correct = items.filter(p => p.answers.correct).length;
+    const percent = Math.round(correct / total * 100);
+
+    const rows = items.map(p => {
+      const variant = getVariant(p.taskNum, p.variantIndex);
+      const selectedText = variant.options[p.answers.selected] ?? "—";
+      const correctText = variant.options[variant.correct];
+      return `
+        <tr>
+          <td>Задание ${p.taskNum} (вар. ${p.variantIndex + 1})</td>
+          <td>${selectedText}</td>
+          <td>${correctText}</td>
+          <td>${p.answers.correct ? '<span class="badge ok">Верно</span>' : '<span class="badge fail">Ошибка</span>'}</td>
+        </tr>
+      `;
+    }).join("");
+
+    return `
+      <div style="margin-bottom:24px;">
+        <h3>${student.name} — ${correct} из ${total} (${percent}%)</h3>
+        <div class="progress-bar"><div style="width:${percent}%"></div></div>
+        <table style="margin-top:12px;">
+          <thead><tr><th>Задание</th><th>Ответ ученика</th><th>Правильный</th><th>Результат</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }).join("");
+}
+
+/* =========================================================
+   КАБИНЕТ УЧЕНИКА
+   ========================================================= */
+
+function openStudent() {
+  showScreen("student-screen");
+  renderStudentTasks();
+  $("#st-task-title").textContent = "Выберите задание";
+  $("#st-task-body").innerHTML = `<p class="hint">Задание не выбрано.</p>`;
+  $("#st-task-result").textContent = "";
+}
+
+function renderStudentTasks() {
+  const list = $("#student-tasks");
+  const my = state.published.filter(p => p.studentId === currentUser.id);
+
+  if (!my.length) {
+    list.innerHTML = `<li class="hint">Учитель пока не выдал заданий.</li>`;
+    return;
+  }
+
+  list.innerHTML = my.map(p => {
+    const variant = getVariant(p.taskNum, p.variantIndex);
+    const done = !!p.answers;
+    const badge = done
+      ? (p.answers.correct ? '<span class="badge ok">Верно</span>' : '<span class="badge fail">Ошибка</span>')
+      : '<span class="badge">К выполнению</span>';
+    return `<li class="${done ? "done" : ""}">
+      <button class="link-btn" data-open="${p.id}" style="margin:0;">
+        Задание ${p.taskNum} (вар. ${p.variantIndex + 1})
+      </button>
+      ${badge}
+    </li>`;
+  }).join("");
+
+  list.querySelectorAll("[data-open]").forEach(btn => {
+    btn.addEventListener("click", () => openStudentTask(btn.dataset.open));
+  });
+}
+
+function openStudentTask(publishedId) {
+  const p = state.published.find(x => x.id === publishedId);
+  if (!p) return;
+  currentStudentTaskId = publishedId;
+
+  const variant = getVariant(p.taskNum, p.variantIndex);
+  $("#st-task-title").textContent = `Задание ${p.taskNum}. ${ALL_TASKS[p.taskNum].title} (вариант ${p.variantIndex + 1})`;
+  $("#st-task-result").textContent = "";
+  $("#st-task-result").className = "msg";
+
+  const done = !!p.answers;
+
+  const optionsHtml = variant.options.map((opt, i) => {
+    let cls = "";
+    if (done) {
+      if (i === variant.correct) cls = "correct";
+      else if (i === p.answers.selected) cls = "wrong";
+    }
+    return `<label class="${cls}">
+      <input type="radio" name="st-answer" value="${i}" ${done ? "disabled" : ""} ${done && i === p.answers.selected ? "checked" : ""}>
+      ${opt}
+    </label>`;
+  }).join("");
+
+  $("#st-task-body").innerHTML = `
+    <div class="question-box">
+      <div class="q-text">${variant.question}</div>
+      <div class="options">${optionsHtml}</div>
+    </div>
+    ${done ? "" : `<button id="st-submit">Проверить</button>`}
+  `;
+
+  if (done) {
+    $("#st-task-result").textContent = p.answers.correct ? "Верно!" : "Ошибка. Правильный ответ подсвечен зелёным.";
+    $("#st-task-result").classList.toggle("err", !p.answers.correct);
+  } else {
+    $("#st-submit").addEventListener("click", () => submitStudentAnswer(p, variant));
+  }
+}
+
+function submitStudentAnswer(p, variant) {
+  const selected = document.querySelector('input[name="st-answer"]:checked');
+  const resultEl = $("#st-task-result");
+
+  if (!selected) {
+    resultEl.textContent = "Выберите вариант ответа.";
+    resultEl.className = "msg err";
+    return;
+  }
+
+  const idx = Number(selected.value);
+  p.answers = { selected: idx, correct: idx === variant.correct };
+  saveState();
+
+  document.querySelectorAll("#st-task-body .options label").forEach((label, i) => {
+    label.querySelector("input").disabled = true;
+    if (i === variant.correct) label.classList.add("correct");
+    else if (i === idx && idx !== variant.correct) label.classList.add("wrong");
+  });
+  const btn = $("#st-submit");
+  if (btn) btn.remove();
+
+  resultEl.textContent = p.answers.correct ? "Верно! Отличная работа." : "Ошибка. Правильный ответ подсвечен зелёным.";
+  resultEl.className = "msg" + (p.answers.correct ? "" : " err");
+
+  renderStudentTasks();
+}
+</script>
+
+<!-- Декор поверх фона (не мешает кликам) -->
+<div class="deco" aria-hidden="true"></div>
+</body>
+</html>
